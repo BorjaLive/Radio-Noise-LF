@@ -1,0 +1,122 @@
+body {
+    background-color: black;
+    color: white;
+    padding: 1%;
+}
+
+#sensorsDiv {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border: white;
+    border-style: dashed;
+    padding: .5%;
+}
+
+.sensor-ball {
+    background-color: white;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+}
+
+#sensorCenter {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: .5%;
+    padding-bottom: .5%;
+}
+
+#centerMarker {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid red;
+    transform: translate(-50%, 0)
+}
+
+#steerCenter {
+    padding-bottom: 1%;
+}
+
+#steerMarker {
+    width: 10px;
+    height: 20px;
+    background-color: lime;
+    transform: translate(-50%, 0)
+}
+
+.side-column {
+    display: inline;
+    float: left;
+    width: 49%;
+    padding: .5%;
+}
+
+#statusDiv {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 2px;
+    border: white;
+    border-style: solid;
+    border-width: thin;
+    color: darkgray;
+}
+
+#actionsDiv {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+
+#estopButton {
+    background-color: white;
+    border: red;
+    border-style: solid;
+    border-radius: 10%;
+    color: red;
+    padding: 5px 10px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#startButton {
+    background-color: white;
+    border: lime;
+    border-style: solid;
+    border-radius: 10%;
+    color: green;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#settingsDiv {
+    border: white;
+    border-style: solid;
+    border-width: thin;
+    padding: 1%;
+}
+
+#settingsDiv span {
+    margin-top: 100px;
+}
+
+#settingsDiv input[type=range] {
+    width: 75%;
+}
+
+#settingsDiv input[type=text] {
+    width: 20%;
+}

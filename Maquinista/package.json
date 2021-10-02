@@ -1,0 +1,20 @@
+{
+    "name": "radio_noise_lf",
+    "version": "1.0.0",
+    "description": "Radio Noise LF Maquinista",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "rebuild": "electron-rebuild -f -w serialport"
+    },
+    "author": "B0vE",
+    "license": "MIT",
+    "devDependencies": {
+        "electron": "^10.4.7",
+        "electron-rebuild": "^3.2.3"
+    },
+    "dependencies": {
+        "chart.js": "^3.5.1",
+        "serialport": "^9.2.4"
+    }
+}

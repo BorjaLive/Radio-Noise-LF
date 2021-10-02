@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Radio Noise LF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="sensorsDiv"></div>
+    <div id="sensorCenter">
+        <div id="centerMarker"></div>
+    </div>
+    <div id="steerCenter">
+        <div id="steerMarker"></div>
+    </div>
+    <div>
+        <div class="side-column">
+            <span>Estado</span>
+            <div id="statusDiv">
+                <span>DETENIDO</span>
+                <span>SIGUIENDO</span>
+                <span>PERDIDO</span>
+            </div>
+            <div id="actionsDiv">
+                <button type="button" id="estopButton">E-STOP</button>
+                <button type="button" id="startButton">INICIAR</button>
+            </div>
+        </div>
+        <div class="side-column">
+            <span>Ajustes</span>
+            <div id="settingsDiv">
+                <span>Velocidad</span>
+                <div>
+                    <input type="range" min="0" max="255" value="0" id="velocidadSlider">
+                    <input type="text" value="0" id="velocidadInput">
+                </div>
+                <br>
+                <span><b>P</b>oporcional</span>
+                <div>
+                    <input type="range" min="-1" max="1" value="0" step="0.001" id="pidPSlider">
+                    <input type="text" value="0" id="pidPInput">
+                </div>
+                <span><b>I</b>ntegrado</span>
+                <div>
+                    <input type="range" min="-1" max="1" value="0" step="0.001" id="pidISlider">
+                    <input type="text" value="0" id="pidIInput">
+                </div>
+                <span><b>D</b>iferencial</span>
+                <div>
+                    <input type="range" min="-1" max="1" value="0" step="0.001" id="pidDSlider">
+                    <input type="text" value="0" id="pidDInput">
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="errorPlot" width="3" height="1"></canvas>
+</body>
+
+</html>
