@@ -5,12 +5,36 @@ const N_SENSORS = 16;
 const ESTADOS = { DETENIDO: 1, SIGUIENDO: 2, PERDIDO: 3 };
 const MAX_LOST_LINE_TIME = 30;
 const MAX_TURN_FORCE = 2;
+const CONFIG_PRESETS = [
+    {
+        name: "Lento",
+        s: 100,
+        p: 1,
+        i: 0,
+        d: 0
+    },
+    {
+        name: "Rapido",
+        s: 255,
+        p: 1,
+        i: .75,
+        d: .5
+    }
+];
 
-const port = new SerialPort('COM4', { baudRate: 9600 });
-port.on("open", () => {
-    console.log('Serial port open');
+var port = null, sercom = null;
+SerialPort.list().then((ports) => {
+    ports.forEach((p) => {
+        pm = p["manufacturer"];
+        if (typeof pm !== "undefined" && pm.includes("arduino")) {
+            port = new SerialPort(p.path, { baudRate: 9600 });
+            port.on("open", () => {
+                console.log('Serial port open');
+            });
+            sercom = new RNLFSerCom(port);
+        }
+    });
 });
-var sercom = new RNLFSerCom(port);
 var estado = ESTADOS.DETENIDO;
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -69,6 +93,25 @@ window.addEventListener("DOMContentLoaded", () => {
     pidDInput.addEventListener("keypress", (event) => {
         if (event.code == "Enter") pidDSlider.value = pidDInput.value;
         updatePIDsettings();
+    });
+
+    var presetsDiv = document.getElementById("presetsDiv");
+    CONFIG_PRESETS.forEach(conf => {
+        let btn = document.createElement("button");
+        btn.type = "button";
+        btn.classList.add("presetButton");
+        btn.innerText = conf.name;
+        btn.addEventListener("click", () => {
+            velocidadSlider.value = conf.v;
+            pidPSlider.value = conf.p;
+            pidISlider.value = conf.i;
+            pidDSlider.value = conf.d;
+            velocidadSlider.dispatchEvent(new Event("change"));
+            pidPSlider.dispatchEvent(new Event("change"));
+            pidISlider.dispatchEvent(new Event("change"));
+            pidDSlider.dispatchEvent(new Event("change"));
+        });
+        presetsDiv.appendChild(btn);
     });
 
     var errorPlot = new Chart(document.getElementById("errorPlot"), {
@@ -181,6 +224,7 @@ window.addEventListener("DOMContentLoaded", () => {
     var sensorFilter = new AvgFilter(10, 0);
     //Funcion de actualizacion (30fps)
     setInterval(() => {
+        if(sercom === null) return;
         if (sercom.isNewData()) {
             //console.log("new Data", sercom.getData());
             let sensors = sercom.getData();
@@ -210,7 +254,10 @@ window.addEventListener("DOMContentLoaded", () => {
             setCenterMarkerPos(center);
             errorPlotUpdate(center);
 
-            if (estado == ESTADOS.DETENIDO) return;
+            if (estado == ESTADOS.DETENIDO){
+                sercom.sendData(0, true, 0, true);
+                return;
+            }
 
             if (lostLineCounter > MAX_LOST_LINE_TIME) {
                 updateEstado(ESTADOS.PERDIDO);

@@ -18,8 +18,9 @@ app.allowRendererProcessReuse = false
 
 function createWindow() {
     const win = new BrowserWindow({
-        width: 720,
-        height: 480,
+        width: 1024,
+        height: 768,
+        fullscreen: true,
         webPreferences: {
             preload: path.join(__dirname, "src/preload.js")
         }
