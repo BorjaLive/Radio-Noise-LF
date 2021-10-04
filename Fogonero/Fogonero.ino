@@ -1,5 +1,5 @@
 #include "rnlfSerCom.h"
-#define N_SENSORS 16
+#define N_SENSORS 8
 #define PWM_I_F 3
 #define PWM_I_R 9
 #define PWM_D_F 10
@@ -12,7 +12,7 @@ uint32_t sensors;
 
 void setup() {
   for(int i = 0; i < N_SENSORS; i++){
-    pinMode(SENSORS[i], INPUT_PULLUP);
+    pinMode(SENSORS[i], INPUT);
   }
   pinMode(PWM_I_F, OUTPUT);
   pinMode(PWM_I_R, OUTPUT);
@@ -50,7 +50,7 @@ void loop() {
 
   //Enviar los datos de los sensores
   for(int i = 0; i < N_SENSORS; i++){
-    bitWrite(sensors, i, !digitalRead(SENSORS[i]));
+    bitWrite(sensors, i, digitalRead(SENSORS[i]));
   }
   sercom.sendData(sensors);
   
