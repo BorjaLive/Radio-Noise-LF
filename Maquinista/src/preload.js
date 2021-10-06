@@ -1,11 +1,12 @@
 var Chart = require('chart.js');
 const SerialPort = require('serialport');
 
-const N_SENSORS = 8;
+const N_SENSORS = 16;
 const ESTADOS = { DETENIDO: 1, SIGUIENDO: 2, PERDIDO: 3 };
 const MAX_LOST_LINE_TIME = 30;
 const MAX_TURN_FORCE = 2;
-const CONFIG_PRESETS = [{
+const CONFIG_PRESETS = [
+    {
         name: "Lento",
         s: 100,
         p: 1,
@@ -21,8 +22,7 @@ const CONFIG_PRESETS = [{
     }
 ];
 
-var port = null,
-    sercom = null;
+var port = null, sercom = null;
 SerialPort.list().then((ports) => {
     ports.forEach((p) => {
         pm = p["manufacturer"];
@@ -224,7 +224,7 @@ window.addEventListener("DOMContentLoaded", () => {
     var sensorFilter = new AvgFilter(10, 0);
     //Funcion de actualizacion (30fps)
     setInterval(() => {
-        if (sercom === null) return;
+        if(sercom === null) return;
         if (sercom.isNewData()) {
             //console.log("new Data", sercom.getData());
             let sensors = sercom.getData();
@@ -254,7 +254,7 @@ window.addEventListener("DOMContentLoaded", () => {
             setCenterMarkerPos(center);
             errorPlotUpdate(center);
 
-            if (estado == ESTADOS.DETENIDO) {
+            if (estado == ESTADOS.DETENIDO){
                 sercom.sendData(0, true, 0, true);
                 return;
             }

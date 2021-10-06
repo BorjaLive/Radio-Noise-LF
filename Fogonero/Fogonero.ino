@@ -1,18 +1,21 @@
 #include "rnlfSerCom.h"
-#define N_SENSORS 8
+#define N_SENSORS 16
 #define PWM_I_F 3
 #define PWM_I_R 9
 #define PWM_D_F 10
 #define PWM_D_R 11
 
-const int SENSORS[] = {22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52};
+//const int SENSORS[] = {22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52};
+const int SENSORS[] = {38, 22, 40, 24, 42, 26, 44, 28, 46, 30, 48, 32, 50, 34, 52, 36};
+//22, 24, 26, 28, 30, 32, 34, 36, 
+//38, 40, 42, 44, 46, 48, 50, 52
 
 RNLFSerCom sercom;
 uint32_t sensors;
 
 void setup() {
   for(int i = 0; i < N_SENSORS; i++){
-    pinMode(SENSORS[i], INPUT);
+    pinMode(SENSORS[i], INPUT_PULLUP);
   }
   pinMode(PWM_I_F, OUTPUT);
   pinMode(PWM_I_R, OUTPUT);
@@ -50,7 +53,7 @@ void loop() {
 
   //Enviar los datos de los sensores
   for(int i = 0; i < N_SENSORS; i++){
-    bitWrite(sensors, i, digitalRead(SENSORS[i]));
+    bitWrite(sensors, i, !digitalRead(SENSORS[i]));
   }
   sercom.sendData(sensors);
   
