@@ -2,6 +2,7 @@ body {
     background-color: black;
     color: white;
     padding: 1%;
+    overflow: hidden;
 }
 
 #sensorsDiv {
@@ -11,6 +12,7 @@ body {
     border: white;
     border-style: dashed;
     padding: .5%;
+    background-color: darkviolet;
 }
 
 .sensor-ball {
@@ -18,6 +20,8 @@ body {
     border-radius: 50%;
     height: 30px;
     width: 30px;
+    border-style: solid;
+    border-color: darkmagenta;
 }
 
 #sensorCenter {
@@ -94,6 +98,20 @@ body {
     border-style: solid;
     border-radius: 10%;
     color: green;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#calibrateButton {
+    background-color: white;
+    border: blue;
+    border-style: solid;
+    border-radius: 10%;
+    color: darkblue;
     padding: 5px 10px;
     text-align: center;
     text-decoration: none;

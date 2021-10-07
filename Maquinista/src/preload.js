@@ -1,12 +1,13 @@
 var Chart = require('chart.js');
 const SerialPort = require('serialport');
 
-const N_SENSORS = 16;
+const N_SENSORS = 32;
+const MIN_CONTRAST = 70;
+const MAX_COVERTURE = 10;
 const ESTADOS = { DETENIDO: 1, SIGUIENDO: 2, PERDIDO: 3 };
 const MAX_LOST_LINE_TIME = 30;
 const MAX_TURN_FORCE = 2;
-const CONFIG_PRESETS = [
-    {
+const CONFIG_PRESETS = [{
         name: "Lento",
         s: 100,
         p: 1,
@@ -22,12 +23,13 @@ const CONFIG_PRESETS = [
     }
 ];
 
-var port = null, sercom = null;
+var port = null,
+    sercom = null;
 SerialPort.list().then((ports) => {
     ports.forEach((p) => {
         pm = p["manufacturer"];
         if (typeof pm !== "undefined" && pm.includes("arduino")) {
-            port = new SerialPort(p.path, { baudRate: 9600 });
+            port = new SerialPort(p.path, { baudRate: 19200 });
             port.on("open", () => {
                 console.log('Serial port open');
             });
@@ -217,6 +219,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("estopButton").addEventListener("click", () => updateEstado(ESTADOS.DETENIDO));
     document.getElementById("startButton").addEventListener("click", () => updateEstado(ESTADOS.SIGUIENDO));
+    document.getElementById("calibrateButton").addEventListener("click", () => sercom.setCalibrationPendent());
 
     var lostLineCounter = 0;
     pid.setinteg(0);
@@ -224,37 +227,49 @@ window.addEventListener("DOMContentLoaded", () => {
     var sensorFilter = new AvgFilter(10, 0);
     //Funcion de actualizacion (30fps)
     setInterval(() => {
-        if(sercom === null) return;
+        if (sercom === null) return;
         if (sercom.isNewData()) {
-            //console.log("new Data", sercom.getData());
-            let sensors = sercom.getData();
+            let data = sercom.getData();
             let nStart = -1,
-                nEnd = -1;
-            sensors.forEach((val, i) => {
-                sensorBalls[i].style.backgroundColor = val ? "gray" : "white";
-                if (val) {
+                nEnd = -1,
+                media = 0,
+                maxContrast = 0;
+            data.sensors.forEach((val, i) => {
+                sensorBalls[i].style.backgroundColor = `rgb(${val},${val},${val})`;
+                media += val;
+            });
+
+            media /= N_SENSORS;
+            data.sensors.forEach((val, i) => {
+                if (val < media) {
                     if (nStart == -1) nStart = i;
                     nEnd = i;
-                }
+                    sensorBalls[i].style.borderColor = "red";
+                    maxContrast = Math.max(maxContrast, media / (val + 1));
+                } else sensorBalls[i].style.borderColor = "darkmagenta";
             });
+
             let center = 0;
-            if (nStart == -1) {
-                //TODO: Se ha perdido la linea
+            if (nStart == -1 || maxContrast < MIN_CONTRAST) {
+                //Se ha perdido la linea por no encontrar puntos (raro) o porque no estan claros (bajo contraste)
                 lostLineCounter++;
-            } else if (nEnd - nStart > 5) {
-                //TODO: Definir la constante de maxima cobertra
-                //TODO: La linea no esta lo suficientemente perpendicular
+            } else if (nEnd - nStart > MAX_COVERTURE) {
+                //TODO: La linea es muy ancha
                 lostLineCounter++;
             } else {
                 center = ((((nStart + nEnd) / 2) / (N_SENSORS - 1)) * 2) - 1;
                 lostLineCounter = 0;
             }
+
             sensorFilter.add(center);
             center = sensorFilter.get();
+
+            //center = (data.pos / (N_SENSORS * 500)) - 1;
+
             setCenterMarkerPos(center);
             errorPlotUpdate(center);
 
-            if (estado == ESTADOS.DETENIDO){
+            if (estado == ESTADOS.DETENIDO) {
                 sercom.sendData(0, true, 0, true);
                 return;
             }
@@ -320,10 +335,11 @@ function AvgFilter(n, def = 0) {
 
 function RNLFSerCom(serial) {
     this.serial = serial;
-    this.dataIn = new Uint8Array(4);
+    this.dataIn = new Uint8Array(36);
     this.dataOut = new Uint8Array(6);
     this.inPos = 0;
     this.newData = false;
+    this.calibrationPendent = false;
 
     this.dataOut[0] = 0xF0;
     this.dataOut[5] = 0x0F;
@@ -335,12 +351,14 @@ function RNLFSerCom(serial) {
                     if (b != 0xF0) this.inPos = 0;
                     else this.inPos++;
                     break;
-                case 5:
-                    let crc = Math.floor((this.dataIn[0] + this.dataIn[1] + this.dataIn[2] + this.dataIn[3]) / 4);
+                case 36:
+                    let crc = 0;
+                    for (let i = 0; i < this.dataIn.length; i++) crc += this.dataIn[i];
+                    crc = Math.floor(crc / this.dataIn.length);
                     if (b != crc) this.inPos = 0;
                     else this.inPos++;
                     break;
-                case 6:
+                case 37:
                     if (b == 0x0F) this.newData = true;
                     this.inPos = 0;
                     break;
@@ -354,23 +372,35 @@ function RNLFSerCom(serial) {
     this.isNewData = () => { return this.newData; }
 
     this.getData = () => {
-        let values = Array(N_SENSORS);
-        for (let i = 0; i < Math.floor(N_SENSORS / 8); i++) {
-            for (let j = 0; j < 8; j++) {
-                values[8 * i + j] = bitRead(this.dataIn[3 - i], j);
-            }
+        //console.log(this.dataIn);
+        let data = {
+            pos: this.dataIn[2] + (this.dataIn[1] << 8),
+            sensors: [],
+            frontColisionDetected: bitRead(this.dataIn[0], 1)
+        };
+
+        for (let i = 0; i < N_SENSORS; i++) {
+            data.sensors.push(this.dataIn[3 + i]);
         }
-        return values;
+
+        return data;
     }
 
-    this.sendData = (pwmI, dirI, pwmD, dirD) => {
+    this.sendData = (pwmI, dirI, pwmD, dirD, calibrar) => {
         this.dataOut[1] = Math.floor(normaliceValue(pwmI, 0, 248));
         this.dataOut[2] = Math.floor(normaliceValue(pwmD, 0, 248));
         this.dataOut[3] = 0;
         this.dataOut[3] = bitWrite(this.dataOut[3], 0, dirI);
         this.dataOut[3] = bitWrite(this.dataOut[3], 1, dirD);
+        this.dataOut[3] = bitWrite(this.dataOut[3], 2, this.calibrationPendent);
         this.dataOut[4] = (this.dataOut[1] + this.dataOut[2] + this.dataOut[3]) / 3;
         this.serial.write(this.dataOut);
+
+        this.calibrationPendent = false;
+    }
+
+    this.setCalibrationPendent = () => {
+        this.calibrationPendent = true;
     }
 }
 

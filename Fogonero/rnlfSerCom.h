@@ -10,27 +10,28 @@
  *  1 - PWM I
  *  2 - PWM D
  *  3 - FLAGS
+ *    5 - CALIBRAR
  *    6 - DIR I
  *    7 - DIR D
  *  4 - CRC = B1+B2+B3 / 3
  *  5 - 0x0F
  *  
- *  ENVIO (7, 4 de datos)
+ *  ENVIO (38, 36 de datos)
  *  0 - 0xF0
  *  1 - FLAGS
- *    ...
- *    7 - SENSOR 0
+ *    1 - FRONT COLISION DETECTO
+ *  2 - POS
+ *  3 - POS
+ *  4 - SENSOR 0
  *  ...
- *  4 - FLAGS
- *    0 - SENSOR 31
- *    ...
- *  5 - CRC = B1+B2+B3+B4 / 4
- *  6 - 0x0F
+ *  35 - SENSOR 31
+ *  36 - CRC = B1+B2+...+B35 / 35
+ *  37 - 0x0F
  */
 
 class RNLFSerCom{
 private:
-  uint8_t dataIn[3], dataOut[7];
+  uint8_t dataIn[3], dataOut[38];
   int inPos;
   bool newData;
 public:
@@ -38,8 +39,8 @@ public:
   void init();
   void act();
   bool inline isNewData(){return this->newData;}
-  void getData(uint8_t &pwmI, bool &dirI, uint8_t &pwmD, bool &dirD);
-  void sendData(uint32_t sensors);
+  void getData(uint8_t &pwmI, bool &dirI, uint8_t &pwmD, bool &dirD, bool &calibrar);
+  void sendData(uint16_t pos, uint16_t *sensorsA, uint16_t *sensorsB, uint8_t nsensorsA, uint8_t nsensorsB);
 };
 
 /*
