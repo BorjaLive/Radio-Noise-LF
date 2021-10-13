@@ -2,6 +2,7 @@ var Chart = require('chart.js');
 const SerialPort = require('serialport');
 
 const N_SENSORS = 32;
+const THRESHOLD_CONSTRAST = 0.25;
 const MIN_CONTRAST = 70;
 const MAX_COVERTURE = 10;
 const ESTADOS = { DETENIDO: 1, SIGUIENDO: 2, PERDIDO: 3 };
@@ -130,10 +131,10 @@ window.addEventListener("DOMContentLoaded", () => {
         options: {
             scales: {
                 yAxes: [{
+                    display:true,
                     ticks: {
-                        min: 0,
-                        max: 4095,
-                        stepSize: 512
+                        min: -1,
+                        max: 1
                     }
                 }],
                 xAxes: [{
@@ -241,7 +242,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
             media /= N_SENSORS;
             data.sensors.forEach((val, i) => {
-                if (val < media) {
+                if (val < media * THRESHOLD_CONSTRAST) {
                     if (nStart == -1) nStart = i;
                     nEnd = i;
                     sensorBalls[i].style.borderColor = "red";
@@ -263,8 +264,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
             sensorFilter.add(center);
             center = sensorFilter.get();
-
-            //center = (data.pos / (N_SENSORS * 500)) - 1;
 
             setCenterMarkerPos(center);
             errorPlotUpdate(center);

@@ -1,8 +1,9 @@
 #include <QTRSensors.h>
+#include <EEPROM.h>
 #include "rnlfSerCom.h"
 
 #define N_SENSORS 32
-#define PWM_I_F 3
+#define PWM_I_F 8
 #define PWM_I_R 9
 #define PWM_D_F 10
 #define PWM_D_R 11
@@ -38,13 +39,25 @@ void setup() {
   delay(500);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
-
-  // 2.5 ms RC read timeout (default) * 10 reads per calibrate() call
-  // = ~25 ms per calibrate() call.
-  // Call calibrate() 400 times to make calibration take about 10 seconds.
-  for (uint16_t i = 0; i < 40; i++){
-    qtrA.calibrate();
-    qtrB.calibrate();
+  
+  //Cargar la calibracion en EEPROM
+  qtrA.calibrate();
+  qtrB.calibrate();
+  for(int i = 0; i < SENSOR_COUNT_A; i++){
+    uint8_t* maxVal = (uint8_t*) &qtrA.calibrationOn.maximum[i];
+    uint8_t* minVal = (uint8_t*) &qtrA.calibrationOn.minimum[i];
+    maxVal[0] = EEPROM.read(i*4);
+    maxVal[1] = EEPROM.read(i*4 + 1);
+    minVal[0] = EEPROM.read(i*4 + 2);
+    minVal[1] = EEPROM.read(i*4 + 3);
+  }
+  for(int i = 0; i < SENSOR_COUNT_B; i++){
+    uint8_t* maxVal = (uint8_t*) &qtrB.calibrationOn.maximum[i];
+    uint8_t* minVal = (uint8_t*) &qtrB.calibrationOn.minimum[i];
+    maxVal[0] = EEPROM.read(SENSOR_COUNT_A * 4 + i*4);
+    maxVal[1] = EEPROM.read(SENSOR_COUNT_A * 4 + i*4 + 1);
+    minVal[0] = EEPROM.read(SENSOR_COUNT_A * 4 + i*4 + 2);
+    minVal[1] = EEPROM.read(SENSOR_COUNT_A * 4 + i*4 + 3);
   }
   digitalWrite(LED_BUILTIN, LOW);
 }
@@ -63,6 +76,23 @@ void loop() {
       for (uint16_t i = 0; i < 200; i++){
          qtrA.calibrate();
          qtrB.calibrate();
+      }
+      //Guardar la calibracion en EEPROM
+      for(int i = 0; i < SENSOR_COUNT_A; i++){
+        uint8_t* maxVal = (uint8_t*) &qtrA.calibrationOn.maximum[i];
+        uint8_t* minVal = (uint8_t*) &qtrA.calibrationOn.minimum[i];
+        EEPROM.write(i*4, maxVal[0]);
+        EEPROM.write(i*4 + 1, maxVal[1]);
+        EEPROM.write(i*4 + 2, minVal[0]);
+        EEPROM.write(i*4 + 3, minVal[1]);
+      }
+      for(int i = 0; i < SENSOR_COUNT_B; i++){
+        uint8_t* maxVal = (uint8_t*) &qtrB.calibrationOn.maximum[i];
+        uint8_t* minVal = (uint8_t*) &qtrB.calibrationOn.minimum[i];
+        EEPROM.write(SENSOR_COUNT_A * 4 + i*4, maxVal[0]);
+        EEPROM.write(SENSOR_COUNT_A * 4 + i*4 + 1, maxVal[1]);
+        EEPROM.write(SENSOR_COUNT_A * 4 + i*4 + 2, minVal[0]);
+        EEPROM.write(SENSOR_COUNT_A * 4 + i*4 + 3, minVal[1]);
       }
       digitalWrite(LED_BUILTIN, LOW);
     }else{
@@ -93,7 +123,7 @@ void loop() {
   // print the sensor values as numbers from 0 to 1000, where 0 means maximum
   // reflectance and 1000 means minimum reflectance, followed by the line
   // position#
-  sercom.sendData(posA, sensorValuesA, sensorValuesB, SENSOR_COUNT_A, SENSOR_COUNT_B);
+  sercom.sendData(0, sensorValuesB, sensorValuesA, SENSOR_COUNT_A, SENSOR_COUNT_B);
   
   delay(1000/30);
 }
