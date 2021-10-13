@@ -28,7 +28,7 @@ var port = null,
 SerialPort.list().then((ports) => {
     ports.forEach((p) => {
         pm = p["manufacturer"];
-        if (typeof pm !== "undefined" && pm.includes("arduino")) {
+        if (typeof pm !== "undefined" && ["arduino", "1a86"].some(v => pm.includes(v))) {
             port = new SerialPort(p.path, { baudRate: 19200 });
             port.on("open", () => {
                 console.log('Serial port open');

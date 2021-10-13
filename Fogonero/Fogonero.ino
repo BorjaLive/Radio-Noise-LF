@@ -1,22 +1,17 @@
 #include <QTRSensors.h>
 #include "rnlfSerCom.h"
 
-#define N_SENSORS 16
+#define N_SENSORS 32
 #define PWM_I_F 3
 #define PWM_I_R 9
 #define PWM_D_F 10
 #define PWM_D_R 11
 
-#define QTR_DIM_A_ODD A0
-#define QTR_DIM_A_EVEN A1
-#define QTR_DIM_B_ODD A2
-#define QTR_DIM_B_EVEN A3
-
 QTRSensors qtrA, qtrB;
 const uint8_t SENSOR_COUNT_A = 16;
-const uint8_t SENSORS_A[] = {38, 22, 40, 24, 42, 26, 44, 28, 46, 30, 48, 32, 50, 34, 52, 36};
+const uint8_t SENSORS_A[] = {A0, 32, A2, 34, A4, 36, A6, 38, A8, 40, A10, 42, A12, 44, A14, 46};
 const uint8_t SENSOR_COUNT_B = 16;
-const uint8_t SENSORS_B[] = {39, 23, 41, 25, 43, 26, 45, 29, 47, 31, 49, 33, 51, 35, 53, 37};
+const uint8_t SENSORS_B[] = {A1, 33, A3, 35, A5, 37, A7, 39, A9, 41, A11, 43, A13, 45, A15, 47};
 uint16_t sensorValuesA[SENSOR_COUNT_A];
 uint16_t sensorValuesB[SENSOR_COUNT_B];
 
